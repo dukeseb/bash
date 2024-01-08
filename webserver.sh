@@ -48,9 +48,17 @@ chmod -R 755 /var/www/$domain
 #Setting up Virtual Host
 echo "Setting up Virtual Host"
 sleep 2
-#nano /etc/apache2/sites-available/$domain.conf
-####### Need to fill in the actual file perhaps another bash script
-
+#write to file /etc/apache2/sites-available/$domain.conf
+#<VirtualHost *:80>
+#    ServerAdmin $email
+#    ServerName $domain
+#    ServerAlias www.$domain
+#    DocumentRoot /var/www/$domain
+#    ErrorLog ${APACHE_LOG_DIR}/error.log
+#    CustomLog ${APACHE_LOG_DIR}/access.log combined
+#</VirtualHost>
+rm /etc/apache2/sites-available/$domain.conf
+echo -e "<VirtualHost *:80> \n  ServerAdmin $email \n  ServerName $domain \n  ServerAlias www.$domain \n  DocumentRoot /var/www/$domain \n  ErrorLog ${APACHE_LOG_DIR}/error.log \n  CustomLog ${APACHE_LOG_DIR}/access.log combined \n</VirtualHost>" >> /etc/apache2/sites-available/$domain.conf
 a2dissite 000-default.conf
 a2ensite $domain.conf
 echo "Is Virtual Host configuration syntax OK"
@@ -72,7 +80,7 @@ systemctl enable apache2
 
 
 #Install MariaDB
-echo "Installing MariaDB
+echo "Installing MariaDB"
 sleep 2
 apt install mariadb-server
 
@@ -100,11 +108,10 @@ ufw allow 22
 groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 chown $ftplogin:sftp /var/www/$domain
-
-# Add the following to the file indicated
-# nano /etc/ssh/sshd_config
-# AllowGroups ssh sftp
-# Match Group sftp
-# ChrootDirectory /var/www/$domain
-# ForceCommand internal-sftp
+#Append Write to file /etc/ssh/sshd_config
+  # AllowGroups ssh sftp
+  # Match Group sftp
+  # ChrootDirectory /var/www/$domain
+  # ForceCommand internal-sftp
+echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
 systemctl reload sshd
