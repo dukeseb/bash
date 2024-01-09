@@ -7,15 +7,19 @@
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
 
 # Set the color variable
+red='\033[0;31m'
 green='\033[0;32m'
-# Clear the color after that
+yellow='\033[0;33m'
+blue='\033[0;34m'
+magenta='\033[0;35m'
+cyan='\033[0;36m'
 clear='\033[0m'
 
 #Required Domain Information
 echo -e "${green}What is your website name? (only include root domain ie. domain.com)${clear}"
 read domain
 
-echo -e "\n \nWhat is the email associated with this domain?"
+echo -e "${green}\n \nWhat is the email associated with this domain?${clear}"
 read email
 
 
@@ -28,14 +32,14 @@ apt install curl
 
 
 #Install Apache Web Server
-echo -e "\n \nInstalling Apache2 Web Server"
+echo -e "${yellow}\n \nInstalling Apache2 Web Server${clear}"
 sleep 2
 apt install apache2 -y
 systemctl enable apache2 --now
 
 
 #Install UFW Firewall
-echo -e "\n \nInstalling & Configuring UFW"
+echo -e "${yellow}\n \nInstalling & Configuring UFW${clear}"
 sleep 2
 apt install ufw -y
 ufw enable
@@ -44,7 +48,7 @@ ufw allow 443
 
 
 #Setting up Website
-echo -e "\n \nSetting up Website"
+echo -e "${yellow}\n \nSetting up Website${clear}"
 sleep 1
 echo "making directory for domain, ,changing ownership, adding permissions...."
 sleep 2
@@ -54,7 +58,7 @@ chmod -R 755 /var/www/$domain
 
 
 #Setting up Virtual Host
-echo -e "\n \nSetting up Virtual Host"
+echo -e "${yellow}\n \nSetting up Virtual Host${clear}"
 sleep 2
 #write to file /etc/apache2/sites-available/$domain.conf
 #<VirtualHost *:80>
@@ -68,7 +72,7 @@ sleep 2
 echo -e "<VirtualHost *:80> \n  ServerAdmin $email \n  ServerName $domain \n  ServerAlias www.$domain \n  DocumentRoot /var/www/$domain \n  ErrorLog ${APACHE_LOG_DIR}/error.log \n  CustomLog ${APACHE_LOG_DIR}/access.log combined \n</VirtualHost>" >> /etc/apache2/sites-available/$domain.conf
 a2dissite 000-default.conf
 a2ensite $domain.conf
-echo -e "\n \nIs Virtual Host configuration syntax OK"
+echo -e "${yellow}\n \nIs Virtual Host configuration syntax OK${clear}"
 sleep 3
 apache2ctl configtest
 sleep 3
@@ -87,14 +91,14 @@ systemctl enable apache2
 
 
 #Install MariaDB
-echo -e "\n \nInstalling MariaDB"
+echo -e "${yellow}\n \nInstalling MariaDB${clear}"
 sleep 2
 apt install mariadb-server -y
 
 
 
 #Install PHP
-echo -e "\n \nWhich PHP Version do you want to install? (ie 8.2)"
+echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)"
 read phpversion
 
 apt install -y apt-transport-https lsb-release ca-certificates wget 
@@ -107,9 +111,9 @@ systemctl restart apache2
 
 
 #Install SFTP
-echo -e "\n \nSetting up SSH / SFTP"
+echo -e "${yellow}\n \nSetting up SSH / SFTP${clear}"
 sleep 2
-echo "What is the username for SFTP Access?"
+echo "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
 ufw allow ssh
 groupadd sftp
@@ -136,8 +140,8 @@ echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthent
 
 systemctl restart sshd
 
-echo -e "\n \nThis is your current IP ADDRESS"
+echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
 hostname -I
-echo -e "\nSystem will reboot in 5 seconds"
+echo -e "${red}\nSystem will reboot in 5 seconds${clear}"
 sleep 10
 reboot
