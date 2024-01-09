@@ -6,9 +6,13 @@
 # https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
 
+# Set the color variable
+green='\033[0;32m'
+# Clear the color after that
+clear='\033[0m'
 
 #Required Domain Information
-echo -e "\033[0;31m What is your website name? (only include root domain ie. domain.com)\033"
+echo -e "${green}What is your website name? (only include root domain ie. domain.com)${clear}"
 read domain
 
 echo -e "\n \nWhat is the email associated with this domain?"
@@ -134,8 +138,6 @@ systemctl restart sshd
 
 echo -e "\n \nThis is your current IP ADDRESS"
 hostname -I
-
-sleep 10
 echo -e "\nSystem will reboot in 5 seconds"
-sleep 5
+sleep 10
 reboot
