@@ -118,8 +118,24 @@ chown $ftplogin:sftp /var/www/$domain
   # Match Group sftp
   # ChrootDirectory /var/www/$domain
   # ForceCommand internal-sftp
-echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
-systemctl reload sshd
+#echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
+
+#Match User $ftplogin
+#	ForceCommand internal-sftp
+#	PasswordAuthentication yes
+#	ChrootDirectory /var/www/$domain
+#	PermitTunnel no
+#	AllowAgentForwarding no
+#	AllowTcpForwarding no
+#	X11Forwarding no
+echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthentication yes \n  ChrootDirectory /var/www/$domain \n  PermitTunnel no \n  AllowAgentForwarding no \n  AllowTcpForwarding no \n  X11Forwarding no" >> /etc/ssh/sshd_config
+
+systemctl restart sshd
 
 echo -e "\n \nThis is your current IP ADDRESS"
 hostname -I
+
+sleep 10
+echo -e "\nSystem will reboot in 5 seconds"
+sleep 5
+reboot
