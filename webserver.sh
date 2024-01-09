@@ -10,7 +10,7 @@
 echo "What is your website name? (only include root domain ie. domain.com)"
 read domain
 
-echo "What is the email associated with this domain?"
+echo -e "\n \nWhat is the email associated with this domain?"
 read email
 
 
@@ -23,22 +23,23 @@ apt install curl
 
 
 #Install Apache Web Server
-echo "Installing Apache2 Web Server"
+echo -e "\n \nInstalling Apache2 Web Server"
 sleep 2
 apt install apache2 -y
 systemctl enable apache2 --now
 
 
 #Install UFW Firewall
-echo "Installing & Configuring UFW"
+echo -e "\n \nInstalling & Configuring UFW"
 sleep 2
 apt install ufw -y
 ufw enable
 ufw allow 80
+ufw allow 443
 
 
 #Setting up Website
-echo "Setting up Website"
+echo -e "\n \nSetting up Website"
 sleep 2
 mkdir /var/www/$domain
 chown -R $USER:$USER /var/www/$domain
@@ -46,7 +47,7 @@ chmod -R 755 /var/www/$domain
 
 
 #Setting up Virtual Host
-echo "Setting up Virtual Host"
+echo -e "\n \nSetting up Virtual Host"
 sleep 2
 #write to file /etc/apache2/sites-available/$domain.conf
 #<VirtualHost *:80>
@@ -57,7 +58,6 @@ sleep 2
 #    ErrorLog ${APACHE_LOG_DIR}/error.log
 #    CustomLog ${APACHE_LOG_DIR}/access.log combined
 #</VirtualHost>
-rm /etc/apache2/sites-available/$domain.conf
 echo -e "<VirtualHost *:80> \n  ServerAdmin $email \n  ServerName $domain \n  ServerAlias www.$domain \n  DocumentRoot /var/www/$domain \n  ErrorLog ${APACHE_LOG_DIR}/error.log \n  CustomLog ${APACHE_LOG_DIR}/access.log combined \n</VirtualHost>" >> /etc/apache2/sites-available/$domain.conf
 a2dissite 000-default.conf
 a2ensite $domain.conf
@@ -87,7 +87,7 @@ apt install mariadb-server -y
 
 
 #Install PHP
-echo "Which PHP Version do you want to install? (ie 8.2)"
+echo -e "\n \nWhich PHP Version do you want to install? (ie 8.2)"
 read phpversion
 
 apt install -y apt-transport-https lsb-release ca-certificates wget 
@@ -100,11 +100,11 @@ systemctl restart apache2
 
 
 #Install SFTP
-echo "Setting up SSH / SFTP"
+echo -e "\n \nSetting up SSH / SFTP"
 sleep 2
 echo "What is the username for SFTP Access?"
 read ftplogin
-ufw allow 22
+ufw allow ssh
 groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 chown $ftplogin:sftp /var/www/$domain
