@@ -8,7 +8,7 @@
 
 
 #Required Domain Information
-echo -e "\033]32m What is your website name? (only include root domain ie. domain.com)\033"
+echo -e "\033[0;31m What is your website name? (only include root domain ie. domain.com)\033"
 read domain
 
 echo -e "\n \nWhat is the email associated with this domain?"
