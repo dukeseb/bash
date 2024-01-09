@@ -9,7 +9,7 @@
 #User Disclaimer
 echo "This Script required the user has installed this LXC script Proxmox Helper Scripts verion of Debian in Advanced Mode with IPV6 Disabled"
 
-echo "How would you like to proceed?"
+echo "Would you like to proceed? (yes/no)"
 read yn
 
 case $yn in 
