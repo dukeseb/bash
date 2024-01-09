@@ -6,7 +6,20 @@
 # https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
 
+#User Disclaimer
+echo "This Script required the user has installed this LXC script (bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/ct/debian.sh)") verion of Debian in Advanced Mode with IPV6 Disabled"
 
+read -p "Do you want to proceed? (yes/no) " yn
+
+case $yn in 
+	yes ) echo ok, we will proceed;;
+	no ) echo exiting...;
+		exit;;
+	* ) echo invalid response;
+		exit 1;;
+
+
+#Required Domain Information
 echo "What is your website name? (only include root domain ie. domain.com)"
 read domain
 
@@ -40,7 +53,7 @@ ufw allow 443
 
 #Setting up Website
 echo -e "\n \nSetting up Website"
-sleep 2
+sleep 1
 echo "making directory for domain, ,changing ownership, adding permissions...."
 sleep 2
 mkdir /var/www/$domain
@@ -63,7 +76,7 @@ sleep 2
 echo -e "<VirtualHost *:80> \n  ServerAdmin $email \n  ServerName $domain \n  ServerAlias www.$domain \n  DocumentRoot /var/www/$domain \n  ErrorLog ${APACHE_LOG_DIR}/error.log \n  CustomLog ${APACHE_LOG_DIR}/access.log combined \n</VirtualHost>" >> /etc/apache2/sites-available/$domain.conf
 a2dissite 000-default.conf
 a2ensite $domain.conf
-echo "Is Virtual Host configuration syntax OK"
+echo -e "\n \nIs Virtual Host configuration syntax OK"
 sleep 3
 apache2ctl configtest
 sleep 3
@@ -117,7 +130,7 @@ chown $ftplogin:sftp /var/www/$domain
   # Match Group sftp
   # ChrootDirectory /var/www/$domain
   # ForceCommand internal-sftp
-echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
+echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp \nPort 22" >> /etc/ssh/sshd_config
 systemctl reload sshd
 
 echo -e "\n \nThis is your current IP ADDRESS"
