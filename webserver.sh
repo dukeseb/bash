@@ -6,19 +6,6 @@
 # https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
 
-#User Disclaimer
-echo "This Script required the user has installed this LXC script Proxmox Helper Scripts verion of Debian in Advanced Mode with IPV6 Disabled"
-
-echo "Would you like to proceed? (yes/no)"
-read yn
-
-case $yn in 
-	yes ) echo ok, we will proceed;;
-	no ) echo exiting...;
-		exit;;
-	* ) echo invalid response;
-		exit 1;;
-
 
 #Required Domain Information
 echo "What is your website name? (only include root domain ie. domain.com)"
