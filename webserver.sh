@@ -42,7 +42,7 @@ ufw allow 443
 echo -e "\n \nSetting up Website"
 sleep 2
 echo "making directory for domain, ,changing ownership, adding permissions...."
-sleep2
+sleep 2
 mkdir /var/www/$domain
 chown -R $USER:$USER /var/www/$domain
 chmod -R 755 /var/www/$domain
@@ -106,7 +106,7 @@ echo -e "\n \nSetting up SSH / SFTP"
 sleep 2
 echo "What is the username for SFTP Access?"
 read ftplogin
-#ufw allow ssh
+ufw allow ssh
 groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 chown $ftplogin:sftp /var/www/$domain
@@ -117,3 +117,6 @@ chown $ftplogin:sftp /var/www/$domain
   # ForceCommand internal-sftp
 echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
 systemctl reload sshd
+
+echo -e "\n \nThis is your current IP ADDRESS"
+hostname -I
