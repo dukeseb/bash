@@ -7,7 +7,7 @@
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
 
 #User Disclaimer
-echo "This Script required the user has installed this LXC script (https://github.com/tteck/Proxmox/raw/main/ct/debian.sh) verion of Debian in Advanced Mode with IPV6 Disabled"
+echo "This Script required the user has installed this LXC script Proxmox Helper Scripts verion of Debian in Advanced Mode with IPV6 Disabled"
 
 echo "How would you like to proceed?"
 read yn
