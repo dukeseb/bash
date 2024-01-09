@@ -34,7 +34,7 @@ echo "Installing & Configuring UFW"
 sleep 2
 apt install ufw -y
 ufw enable
-ufw allow 'Apache Full' && sudo ufw allow 'Apache Secure'
+ufw allow 80
 
 
 #Setting up Website
@@ -82,7 +82,7 @@ systemctl enable apache2
 #Install MariaDB
 echo "Installing MariaDB"
 sleep 2
-apt install mariadb-server
+apt install mariadb-server -y
 
 
 
