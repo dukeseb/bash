@@ -41,6 +41,8 @@ ufw allow 443
 #Setting up Website
 echo -e "\n \nSetting up Website"
 sleep 2
+echo "making directory for domain, ,changing ownership, adding permissions...."
+sleep2
 mkdir /var/www/$domain
 chown -R $USER:$USER /var/www/$domain
 chmod -R 755 /var/www/$domain
@@ -80,7 +82,7 @@ systemctl enable apache2
 
 
 #Install MariaDB
-echo "Installing MariaDB"
+echo -e "\n \nInstalling MariaDB"
 sleep 2
 apt install mariadb-server -y
 
@@ -104,7 +106,7 @@ echo -e "\n \nSetting up SSH / SFTP"
 sleep 2
 echo "What is the username for SFTP Access?"
 read ftplogin
-ufw allow ssh
+#ufw allow ssh
 groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 chown $ftplogin:sftp /var/www/$domain
