@@ -112,7 +112,7 @@ groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 echo -e "\n \nEnter password for SFTP / SSH login"
 passwd $ftplogin
-chown $ftplogin:sftp /var/www/$domain
+chown root:root /var/www/$domain
 #Append Write to file /etc/ssh/sshd_config
   # AllowGroups ssh sftp
   # Match Group sftp
