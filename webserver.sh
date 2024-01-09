@@ -9,7 +9,8 @@
 #User Disclaimer
 echo "This Script required the user has installed this LXC script (https://github.com/tteck/Proxmox/raw/main/ct/debian.sh) verion of Debian in Advanced Mode with IPV6 Disabled"
 
-read -p "Do you want to proceed? (yes/no) " yn
+echo "How would you like to proceed?"
+read yn
 
 case $yn in 
 	yes ) echo ok, we will proceed;;
