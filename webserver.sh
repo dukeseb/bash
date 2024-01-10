@@ -98,7 +98,7 @@ apt install mariadb-server -y
 
 
 #Install PHP
-echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)"
+echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)${clear}"
 read phpversion
 
 apt install -y apt-transport-https lsb-release ca-certificates wget 
