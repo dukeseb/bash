@@ -117,7 +117,7 @@ echo "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
 ufw allow ssh
 groupadd sftp
-useradd -g sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
+useradd -g sftp -d /var/www/$domain -s /bin/bash $ftplogin #/sbin/nologin
 echo -e "\n \nEnter password for SFTP / SSH login"
 passwd $ftplogin
 chown root:root /var/www/$domain
