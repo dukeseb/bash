@@ -52,9 +52,9 @@ echo -e "${yellow}\n \nSetting up Website${clear}"
 sleep 1
 echo "making directory for domain, ,changing ownership, adding permissions...."
 sleep 2
-mkdir -p /var/www/$domain
-chmod 500 /var/www/
-chmod -R 700 /var/www/$domain
+mkdir /var/www/$domain
+chown -R $USER:$USER /var/www/$domain
+chmod -R 755 /var/www/$domain
 
 
 #Setting up Virtual Host
@@ -117,18 +117,26 @@ echo "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
 ufw allow ssh
 groupadd sftp
-useradd -G sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
-echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
+useradd -g sftp -d /var/www/$domain -s /bin/bash $ftplogin #/sbin/nologin
+echo -e "\n \nEnter password for SFTP / SSH login"
 passwd $ftplogin
-chown root:sftp /var/www/
-chown $ftplogin:sftp /var/www/$domain
+chown root:root /var/www/$domain
 #Append Write to file /etc/ssh/sshd_config
   # AllowGroups ssh sftp
   # Match Group sftp
   # ChrootDirectory /var/www/$domain
   # ForceCommand internal-sftp
-rm /etc/ssh/sshd_config  
-echo -e "Include /etc/ssh/sshd_config.d/*.conf \nAllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www \nForceCommand internal-sftp \nSubsystem       sftp    /usr/lib/openssh/sftp-server \nAcceptEnv LANG LC_* \nPrintMotd no \nUsePAM yes \nKbdInteractiveAuthentication no" >> /etc/ssh/sshd_config
+#echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
+
+#Match User $ftplogin
+#	ForceCommand internal-sftp
+#	PasswordAuthentication yes
+#	ChrootDirectory /var/www/$domain
+#	PermitTunnel no
+#	AllowAgentForwarding no
+#	AllowTcpForwarding no
+#	X11Forwarding no
+echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthentication yes \n  ChrootDirectory /var/www/$domain \n  PermitTunnel no \n  AllowAgentForwarding no \n  AllowTcpForwarding no \n  X11Forwarding no" >> /etc/ssh/sshd_config
 
 systemctl restart sshd
 
