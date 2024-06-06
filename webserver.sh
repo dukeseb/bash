@@ -52,9 +52,9 @@ echo -e "${yellow}\n \nSetting up Website${clear}"
 sleep 1
 echo "making directory for domain, ,changing ownership, adding permissions...."
 sleep 2
-mkdir /var/www/$domain
-chown -R $USER:$USER /var/www/$domain
-chmod -R 755 /var/www/$domain
+mkdir -p /var/www/$domain
+chmod 500 /var/www/
+chmod -R 700 /var/www/$domain
 
 
 #Setting up Virtual Host
@@ -120,13 +120,14 @@ groupadd sftp
 useradd -G sftp -d /var/www/$domain -s /sbin/nologin $ftplogin
 echo -e "\n \nEnter password for SFTP / SSH login"
 passwd $ftplogin
-chown root:root /var/www/$domain
+chown root:sftp /var/www/
+chown $ftplogin:sftp /var/www/$domain
 #Append Write to file /etc/ssh/sshd_config
   # AllowGroups ssh sftp
   # Match Group sftp
   # ChrootDirectory /var/www/$domain
   # ForceCommand internal-sftp
-#echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
+echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
 
 #Match User $ftplogin
 #	ForceCommand internal-sftp
