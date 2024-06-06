@@ -113,12 +113,12 @@ systemctl restart apache2
 #Install SFTP
 echo -e "${yellow}\n \nSetting up SSH / SFTP${clear}"
 sleep 2
-echo "${green}What is the username for SFTP Access?${clear}"
+echo -e "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
 ufw allow ssh
 groupadd sftp
 useradd -g sftp -d /var/www/$domain -s /bin/bash $ftplogin #/sbin/nologin
-echo -e "\n \nEnter password for SFTP / SSH login"
+echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
 passwd $ftplogin
 chown root:root /var/www/$domain
 #Append Write to file /etc/ssh/sshd_config
