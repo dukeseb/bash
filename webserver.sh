@@ -38,6 +38,12 @@ apt install apache2 -y
 systemctl enable apache2 --now
 
 
+#Install OpenSSH Server
+echo -e "${yellow}\n \nInstalling Apache2 Web Server${clear}"
+sleep 2
+apt install openssh-server
+
+
 #Install UFW Firewall
 echo -e "${yellow}\n \nInstalling & Configuring UFW${clear}"
 sleep 2
@@ -52,9 +58,9 @@ echo -e "${yellow}\n \nSetting up Website${clear}"
 sleep 1
 echo "making directory for domain, ,changing ownership, adding permissions...."
 sleep 2
-mkdir /var/www/$domain
-chown -R $USER:$USER /var/www/$domain
-chmod -R 755 /var/www/$domain
+mkdir -p /var/www/$domain
+#chown -R $USER:$USER /var/www/$domain
+#chmod -R 755 /var/www/$domain
 
 
 #Setting up Virtual Host
@@ -115,12 +121,17 @@ echo -e "${yellow}\n \nSetting up SSH / SFTP${clear}"
 sleep 2
 echo -e "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
-ufw allow ssh
+#ufw allow ssh
 groupadd sftp
-useradd -g sftp -d /var/www/$domain -s /bin/bash $ftplogin #/sbin/nologin
+useradd -m -g sftp -d /var/www/$domain -s /bin/false $ftplogin
 echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
 passwd $ftplogin
-chown root:root /var/www/$domain
+echo -e "Subsystem sftp internal-sftp \nMatch Group sftp \nX11Forwarding no \nAllowTcpForwarding no \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp"
+systemctl restart ssh
+chown root:sftp /var/www
+chmod 755 /var/www
+chown sftp:sftp /var/www/$domain
+#chown root:root /var/www/$domain
 #Append Write to file /etc/ssh/sshd_config
   # AllowGroups ssh sftp
   # Match Group sftp
@@ -136,7 +147,7 @@ chown root:root /var/www/$domain
 #	AllowAgentForwarding no
 #	AllowTcpForwarding no
 #	X11Forwarding no
-echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthentication yes \n  ChrootDirectory /var/www/$domain \n  PermitTunnel no \n  AllowAgentForwarding no \n  AllowTcpForwarding no \n  X11Forwarding no" >> /etc/ssh/sshd_config
+#echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthentication yes \n  ChrootDirectory /var/www/$domain \n  PermitTunnel no \n  AllowAgentForwarding no \n  AllowTcpForwarding no \n  X11Forwarding no" >> /etc/ssh/sshd_config
 
 systemctl restart sshd
 
