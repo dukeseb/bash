@@ -1,6 +1,6 @@
 #!/bin/bash
 # https://www.linuxcapable.com/how-to-install-apache-on-debian-linux/
-# https://www.transip.eu/knowledgebase/entry/2076-sftp-tutorial-debian-9/
+# https://reintech.io/blog/setting-up-sftp-secure-file-transfers-debian-12
 # https://www.transip.eu/knowledgebase/entry/1851-installing-an-ssh-server-debian/?utm_source=knowledge%20base
 # https://tecadmin.net/how-to-install-php-on-debian-12/
 # https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
@@ -22,27 +22,14 @@ read domain
 echo -e "${green}\n \nWhat is the email associated with this domain?${clear}"
 read email
 
-
 #Install updates
 apt update && apt upgrade -y
-
-
-#Install Curl
-apt install curl
-
 
 #Install Apache Web Server
 echo -e "${yellow}\n \nInstalling Apache2 Web Server${clear}"
 sleep 2
 apt install apache2 -y
 systemctl enable apache2 --now
-
-
-#Install OpenSSH Server
-echo -e "${yellow}\n \nInstalling Apache2 Web Server${clear}"
-sleep 2
-apt install openssh-server
-
 
 #Install UFW Firewall
 echo -e "${yellow}\n \nInstalling & Configuring UFW${clear}"
@@ -52,7 +39,6 @@ ufw enable
 ufw allow 80
 ufw allow 443
 
-
 #Setting up Website
 echo -e "${yellow}\n \nSetting up Website${clear}"
 sleep 1
@@ -61,7 +47,6 @@ sleep 2
 mkdir -p /var/www/$domain
 #chown -R $USER:$USER /var/www/$domain
 #chmod -R 755 /var/www/$domain
-
 
 #Setting up Virtual Host
 echo -e "${yellow}\n \nSetting up Virtual Host${clear}"
@@ -85,23 +70,10 @@ sleep 3
 systemctl restart apache2
 systemctl enable apache2
 
-
-#Setting up certbot
-#echo "setting up certbot for $domain"
-#apt install python3-certbot-apache -y
-#certbot --apache --agree-tos --redirect --hsts --staple-ocsp --email $email -d $domain
-#echo "Validating certbot - Dry Run"
-#certbot renew --dry-run
-#sleep 3
-
-
-
 #Install MariaDB
 echo -e "${yellow}\n \nInstalling MariaDB${clear}"
 sleep 2
 apt install mariadb-server -y
-
-
 
 #Install PHP
 echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)${clear}"
@@ -121,35 +93,18 @@ echo -e "${yellow}\n \nSetting up SSH / SFTP${clear}"
 sleep 2
 echo -e "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
-#ufw allow ssh
-groupadd sftp
-useradd -m -g sftp -d /var/www/$domain -s /bin/false $ftplogin
+groupadd sftpusers
+useradd -m -g sftpusers -s /bin/false $ftplogin
 echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
 passwd $ftplogin
-echo -e "Subsystem sftp internal-sftp \nMatch Group sftp \nX11Forwarding no \nAllowTcpForwarding no \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp"
+sed -i 's|Subsystem\s\s*sftp\s\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config
+echo -e "\nMatch Group sftpusers \n \tX11Forwarding no \n \tAllowTcpForwarding no \n \tChrootDirectory /var/www/$domain \n \tForceCommand internal-sftp" >> /etc/ssh/sshd_config
 systemctl restart ssh
-chown root:sftp /var/www
+chown root:sftpusers /var/www
 chmod 755 /var/www
-chown sftp:sftp /var/www/$domain
-#chown root:root /var/www/$domain
-#Append Write to file /etc/ssh/sshd_config
-  # AllowGroups ssh sftp
-  # Match Group sftp
-  # ChrootDirectory /var/www/$domain
-  # ForceCommand internal-sftp
-#echo -e "AllowGroups ssh sftp \nMatch Group sftp \nChrootDirectory /var/www/$domain \nForceCommand internal-sftp" >> /etc/ssh/sshd_config
+chown $ftplogin:sftpusers /var/www/$domain
+ufw allow 22/tcp
 
-#Match User $ftplogin
-#	ForceCommand internal-sftp
-#	PasswordAuthentication yes
-#	ChrootDirectory /var/www/$domain
-#	PermitTunnel no
-#	AllowAgentForwarding no
-#	AllowTcpForwarding no
-#	X11Forwarding no
-#echo -e "Match User $ftplogin \n  ForceCommand internal-sftp \n  PasswordAuthentication yes \n  ChrootDirectory /var/www/$domain \n  PermitTunnel no \n  AllowAgentForwarding no \n  AllowTcpForwarding no \n  X11Forwarding no" >> /etc/ssh/sshd_config
-
-systemctl restart sshd
 
 echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
 hostname -I
