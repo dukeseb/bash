@@ -62,29 +62,19 @@ sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' /etc/apache2/
 systemctl restart apache2
 systemctl enable apache2
 
-#Install MariaDB
-while true; do
-read -p "${green}\n \nDo you want to install MariaDB? (y/n)${clear} " yn
-case $yn in
-  [yY] ) echo -e "${yellow}\n \nInstalling MariaDB${clear}";
-      sleep 2;
-      apt install mariadb-server -y;
-      break;;
-  [nN] ) echo exiting...;
-      exit;;
-  * ) echo invalid response;;
-esac  
-done
-
 #Install PHP
 echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)${clear}"
 read phpversion
-apt install -y apt-transport-https lsb-release ca-certificates wget 
-wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list 
+apt install -y software-properties-common apt-transport-https lsb-release ca-certificates wget 
+add-apt-repository ppa:ondrej/php
+# -old--> wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+# -old--> echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list 
 apt update
-apt -y install php$phpversion php$phpversion-xml php$phpversion-curl
+apt -y install php$phpversion
+# -old-->apt -y install php$phpversion php$phpversion-xml php$phpversion-curl
 a2enmod php
+systemctl restart apache2
+#apt -y install php$phpversion-bcmath php$phpversion-curl php$phpversion-mbstring php$phpversion-mysql php$phpversion-xml 
 systemctl restart apache2
 
 
@@ -107,9 +97,23 @@ chown root:sftpusers /var/www
 chmod 755 /var/www
 chown $ftplogin:sftpusers /var/www/$domain
 
+#Mount Netowrk Share
+echo -e "${yellow}\n \nSetting Up Netowrk Share${clear}"
+sleep 2
+echo -e "${green}What is the IP Address${clear}"
+read ipaddress
+echo -e "${green}What is your Share Username${clear}"
+read shareusername
+echo -e "${green}What is your Share Password${clear}"
+read sharepasswd
+mkdir /mnt/share
+touch /credentials.cifs_user
+echo -e "USER=$shareusername \nPASSWORD=$sharepasswd" >> /credentials.cifs_user
+chmod 600 /credentials.cifs_user
+echo -e "\n//$ipaddress/Public /mnt/share cifs rw,nosuid,nodev,noexec,relatime,vers=3.0,sec=ntlmv2,cache=strict,credentials=/credentials.cifs_user,uid=1000,noforceuid,gid=1000,noforcegid,addr=192.168.2.4,file_mode=0777,dir_mode=0777,iocharset=utf8 0 0" >> /etc/fstab
 
 echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
 hostname -I
 echo -e "${red}\nSystem will reboot in 5 seconds${clear}"
-sleep 10
+sleep 5
 reboot
