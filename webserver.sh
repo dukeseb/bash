@@ -18,7 +18,10 @@ clear='\033[0m'
 #Required Domain Information
 echo -e "${green}What is your website name? (only include root domain ie. domain.com)${clear}"
 read domain
-
+sleep 1
+echo "Making Directory for $domain"
+sleep 2
+mkdir -p /var/www/$domain
 echo -e "${green}\n \nWhat is the email associated with this domain?${clear}"
 read email
 
@@ -38,15 +41,7 @@ apt install ufw -y
 ufw enable
 ufw allow 80
 ufw allow 443
-
-#Setting up Website
-echo -e "${yellow}\n \nSetting up Website${clear}"
-sleep 1
-echo "making directory for domain, ,changing ownership, adding permissions...."
-sleep 2
-mkdir -p /var/www/$domain
-#chown -R $USER:$USER /var/www/$domain
-#chmod -R 755 /var/www/$domain
+ufw allow 22
 
 #Setting up Virtual Host
 echo -e "${yellow}\n \nSetting up Virtual Host${clear}"
@@ -67,23 +62,36 @@ echo -e "${yellow}\n \nIs Virtual Host configuration syntax OK${clear}"
 sleep 3
 apache2ctl configtest
 sleep 3
+echo -e "${yellow}\n \nDisabling Web Indexes in apache2.conf${clear}"
+sleep 3
+sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' /etc/apache2/apache2.conf
+sed -i '/<VirtualHost \*:80>/,/<\/VirtualHost>/s/^/    CheckCaseOnly on\n    CheckSpelling on\n/' /etc/apache2/$domain.conf
 systemctl restart apache2
 systemctl enable apache2
 
 #Install MariaDB
-echo -e "${yellow}\n \nInstalling MariaDB${clear}"
-sleep 2
-apt install mariadb-server -y
+while true; do
+read -p "${green}Do you want to install MariaDB? (y/n)${clear} " yn
+case $yn in
+  [yY] ) echo -e "${yellow}\n \nInstalling MariaDB${clear}";
+      sleep 2;
+      apt install mariadb-server -y;
+      break;;
+  [nN] ) echo exiting...;
+      exit;;
+  * ) echo invalid response;;
+esac  
+done
 
 #Install PHP
 echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)${clear}"
 read phpversion
-
 apt install -y apt-transport-https lsb-release ca-certificates wget 
 wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list 
 apt update
-apt-get install -y php$phpversion-cli php$phpversion-common php$phpversion-mysql php$phpversion-zip php$phpversion-gd php$phpversion-mbstring php$phpversion-curl php$phpversion-xml php$phpversion-bcmath
+apt -y install php$phpversion #php-xml php-curl <---- need to figure this out for blog page
+#apt-get install -y php$phpversion-cli php$phpversion-common php$phpversion-mysql php$phpversion-zip php$phpversion-gd php$phpversion-mbstring php$phpversion-curl php$phpversion-xml php$phpversion-bcmath
 a2enmod php
 systemctl restart apache2
 
@@ -93,6 +101,9 @@ echo -e "${yellow}\n \nSetting up SSH / SFTP${clear}"
 sleep 2
 echo -e "${green}What is the username for SFTP Access?${clear}"
 read ftplogin
+sleep 1
+echo -e "${magenta}Creating SFTP User $ftplogin and Assigning User to $domain${clear}"
+sleep 2
 groupadd sftpusers
 useradd -m -g sftpusers -s /bin/false $ftplogin
 echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
@@ -103,7 +114,6 @@ systemctl restart ssh
 chown root:sftpusers /var/www
 chmod 755 /var/www
 chown $ftplogin:sftpusers /var/www/$domain
-ufw allow 22/tcp
 
 
 echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
