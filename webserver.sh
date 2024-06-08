@@ -83,8 +83,7 @@ apt install -y apt-transport-https lsb-release ca-certificates wget
 wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list 
 apt update
-apt -y install php$phpversion php$phpversion-xml php$phpversion-curl #<---- need to figure this out for blog page
-#apt-get install -y php$phpversion-cli php$phpversion-common php$phpversion-mysql php$phpversion-zip php$phpversion-gd php$phpversion-mbstring php$phpversion-curl php$phpversion-xml php$phpversion-bcmath
+apt -y install php$phpversion php$phpversion-xml php$phpversion-curl
 a2enmod php
 systemctl restart apache2
 
