@@ -98,7 +98,7 @@ useradd -m -g sftpusers -s /bin/false $ftplogin
 echo -e "${green}\n \nEnter password for SFTP / SSH login${clear}"
 passwd $ftplogin
 sed -i 's|Subsystem\s\s*sftp\s\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config
-echo -e "\nMatch Group sftpusers \n \tX11Forwarding no \n \tAllowTcpForwarding no \n \tChrootDirectory /var/www/$domain \n \tForceCommand internal-sftp" >> /etc/ssh/sshd_config
+echo -e "\nMatch Group sftpusers \n \tX11Forwarding no \n \tAllowTcpForwarding no \n \tChrootDirectory /var/www/ \n \tForceCommand internal-sftp" >> /etc/ssh/sshd_config
 systemctl restart ssh
 chown root:sftpusers /var/www
 chmod 755 /var/www
