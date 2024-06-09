@@ -15,6 +15,7 @@ magenta='\033[0;35m'
 cyan='\033[0;36m'
 clear='\033[0m'
 
+
 #Required Domain Information
 echo -e "${green}What is your website name? (only include root domain ie. domain.com)${clear}"
 read domain
@@ -25,16 +26,19 @@ mkdir -p /var/www/$domain
 echo -e "${green}\n \nWhat is the email associated with this domain?${clear}"
 read email
 
+
 #Install updates
 echo "Checking && Installing Updates"
 sleep 2
 apt update && apt upgrade -y
+
 
 #Install Apache Web Server
 echo -e "${yellow}\n \nInstalling Apache2 Web Server${clear}"
 sleep 2
 apt install apache2 -y
 systemctl enable apache2 --now
+
 
 #Install UFW Firewall
 echo -e "${yellow}\n \nInstalling & Configuring UFW${clear}"
@@ -44,6 +48,7 @@ ufw enable
 ufw allow 80
 ufw allow 443
 ufw allow 22
+
 
 #Setting up Virtual Host
 echo -e "${yellow}\n \nSetting up Virtual Host${clear}"
@@ -62,6 +67,7 @@ sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' /etc/apache2/
 systemctl restart apache2
 systemctl enable apache2
 
+
 #Install PHP
 echo -e "${green}\n \nWhich PHP Version do you want to install? (ie 8.2)${clear}"
 read phpversion
@@ -70,11 +76,9 @@ add-apt-repository ppa:ondrej/php
 # -old--> wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 # -old--> echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/php.list 
 apt update
-apt -y install php$phpversion
-# -old-->apt -y install php$phpversion php$phpversion-xml php$phpversion-curl
-a2enmod php
-systemctl restart apache2
-#apt -y install php$phpversion-bcmath php$phpversion-curl php$phpversion-mbstring php$phpversion-mysql php$phpversion-xml 
+apt -y install php$phpversion php$phpversion-{mysql,zip,bcmath,mbstring,xml,curl,gd}
+#systemctl restart apache2
+#apt -y install php$phpversion-{mysql,zip,bcmath,mbstring,xml,curl,gd}
 systemctl restart apache2
 
 
@@ -97,14 +101,15 @@ chown root:sftpusers /var/www
 chmod 755 /var/www
 chown $ftplogin:sftpusers /var/www/$domain
 
+
 #Mount Netowrk Share
-echo -e "${yellow}\n \nSetting Up Netowrk Share${clear}"
+echo -e "${yellow}\n \nSetting Up Network Share${clear}"
 sleep 2
-echo -e "${green}What is the IP Address${clear}"
+echo -e "${green}What is the IP Address?${clear}"
 read ipaddress
-echo -e "${green}What is your Share Username${clear}"
+echo -e "${green}What is your Share Username?${clear}"
 read shareusername
-echo -e "${green}What is your Share Password${clear}"
+echo -e "${green}What is your Share Password?${clear}"
 read sharepasswd
 mkdir /mnt/share
 touch /credentials.cifs_user
@@ -112,6 +117,8 @@ echo -e "USER=$shareusername \nPASSWORD=$sharepasswd" >> /credentials.cifs_user
 chmod 600 /credentials.cifs_user
 echo -e "\n//$ipaddress/Public /mnt/share cifs rw,nosuid,nodev,noexec,relatime,vers=3.0,sec=ntlmv2,cache=strict,credentials=/credentials.cifs_user,uid=1000,noforceuid,gid=1000,noforcegid,addr=192.168.2.4,file_mode=0777,dir_mode=0777,iocharset=utf8 0 0" >> /etc/fstab
 
+
+#Closing Information
 echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
 hostname -I
 echo -e "${red}\nSystem will reboot in 5 seconds${clear}"
