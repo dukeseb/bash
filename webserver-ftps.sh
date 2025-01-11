@@ -115,8 +115,10 @@ chmod 600 /etc/ssl/private/vsftpd.key
 chmod 644 /etc/ssl/certs/vsftpd.crt
 
 # Configure vsftpd for FTPS
-echo -e "${yellow}\n \nConfiguring FTPS with SSL/TLS encryption${clear}"
+echo -e "${yellow}\n \nConfiguring FTPS with SSL/TLS encryption and restricting to /var/www/$domain${clear}"
 sleep 2
+
+# Configure vsftpd to use SSL, and restrict users to the web root directory
 sed -i 's/^#\(ssl_enable=\).*$/\1YES/' /etc/vsftpd.conf
 sed -i 's/^#\(rsa_cert_file=\).*$/\1\/etc\/ssl\/certs\/vsftpd.crt/' /etc/vsftpd.conf
 sed -i 's/^#\(rsa_private_key_file=\).*$/\1\/etc\/ssl\/private\/vsftpd.key/' /etc/vsftpd.conf
@@ -128,6 +130,11 @@ sed -i 's/^#\(force_local_logins_ssl=\).*$/\1YES/' /etc/vsftpd.conf
 sed -i 's/^#\(ssl_tlsv1_3=\).*$/\1YES/' /etc/vsftpd.conf
 sed -i 's/^#\(pasv_min_port=\).*$/\140000/' /etc/vsftpd.conf
 sed -i 's/^#\(pasv_max_port=\).*$/\140100/' /etc/vsftpd.conf
+
+# Restrict users to their home directory /var/www/$domain
+echo -e "\nuser_sub_token=YES" >> /etc/vsftpd.conf
+echo -e "local_root=/var/www/$domain" >> /etc/vsftpd.conf
+echo -e "chroot_local_user=YES" >> /etc/vsftpd.conf
 
 # Restart vsftpd service
 systemctl restart vsftpd
