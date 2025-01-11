@@ -1,11 +1,4 @@
 #!/bin/bash
-# https://www.linuxcapable.com/how-to-install-apache-on-debian-linux/
-# https://reintech.io/blog/setting-up-sftp-secure-file-transfers-debian-12
-# https://www.transip.eu/knowledgebase/entry/1851-installing-an-ssh-server-debian/?utm_source=knowledge%20base
-# https://tecadmin.net/how-to-install-php-on-debian-12/
-# https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
-# https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
-
 # Set the color variable
 red='\033[0;31m'
 green='\033[0;32m'
@@ -136,9 +129,18 @@ echo -e "\nuser_sub_token=YES" >> /etc/vsftpd.conf
 echo -e "local_root=/var/www/$domain" >> /etc/vsftpd.conf
 echo -e "chroot_local_user=YES" >> /etc/vsftpd.conf
 
-# Restart vsftpd service
-systemctl restart vsftpd
+# Create and configure FTP user for FTPS access
+echo -e "${green}\n \nWhat username would you like to use for FTPS? (e.g. ftpuser)${clear}"
+read ftpsuser
+sleep 1
+echo -e "${green}\n \nPlease enter a password for the FTPS user: ${clear}"
+read ftpspassword
+# Create the FTPS user and set the password
+useradd -m $ftpsuser
+echo "$ftpsuser:$ftpspassword" | chpasswd
 
+# Restart vsftpd service to apply changes
+systemctl restart vsftpd
 
 #Configure UFW for FTPS (Port 990)
 echo -e "${yellow}\n \nAllowing FTPS (Port 990) through the firewall${clear}"
