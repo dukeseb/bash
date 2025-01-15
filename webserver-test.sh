@@ -140,7 +140,7 @@ echo -e "${yellow}\n \nSetting Up Daily Automatic Updates and Reboot${clear}"
 sleep 2
 
 # Ask the user for the time of day they'd like the task to run (in 24-hour format)
-echo -e "${green}\n \nPlease enter the time of day (24-hour format, e.g., 04:00) when you'd like the update to run:${clear}"
+echo -e "${green}\nPlease enter the time of day (24-hour format, e.g., 04:00) when you'd like the update to run:${clear}"
 read -p "Enter time (HH:MM): " time_of_day
 
 # Validate the time format (basic check for HH:MM)
@@ -155,7 +155,7 @@ TIMER_FILE="/etc/systemd/system/daily-update-clean-reboot.timer"
 SCRIPT_FILE="/usr/local/bin/daily-update-clean-reboot.sh"
 
 # Create the bash script for updating, cleaning, and rebooting
-echo -e "${yellow}\n \nCreating the update, clean, and reboot script...${clear}"
+echo -e "${yellow}\nCreating the update, clean, and reboot script...${clear}"
 sleep 2
 
 cat > $SCRIPT_FILE << EOF
@@ -195,7 +195,7 @@ Type=oneshot
 ExecStart=$SCRIPT_FILE
 EOF
 
-echo -e "${cyan}\n \nSystemd service created: $SERVICE_FILE${clear}"
+echo -e "${cyan}\nSystemd service created: $SERVICE_FILE${clear}"
 sleep 2
 
 # Create the systemd timer file
@@ -211,7 +211,7 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-echo -e "${cyan}\n \nSystemd timer created to run at $time_of_day: $TIMER_FILE${clear}"
+echo -e "${cyan}\nSystemd timer created to run at $time_of_day: $TIMER_FILE${clear}"
 sleep 2
 
 # Reload systemd, enable and start the timer
