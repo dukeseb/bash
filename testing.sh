@@ -24,12 +24,20 @@ variables
 color
 catch_errors
 
-#Space for Test Code
-
-
+# Start container creation
 start
 build_container
 description
 
+# Display the current IP address of the container
+msg_info "Fetching current IP address..."
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
+if [ -z "$IP_ADDRESS" ]; then
+    msg_error "Unable to fetch IP address!"
+else
+    msg_ok "Current IP Address: $IP_ADDRESS"
+fi
+
+# Final success message
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
