@@ -122,7 +122,7 @@ if [[ "$choice" =~ ^[Yy]$ ]]; then
     echo -e "${green}What is the IP Address?${clear}"
     read ipaddress
     echo -e "${green}What is your Share Username?${clear}"
-    read shareusername
+    read -s shareusername
     echo -e "${green}What is your Share Password?${clear}"
     read sharepasswd
     mkdir /mnt/share
