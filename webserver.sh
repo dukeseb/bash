@@ -91,7 +91,8 @@ else
 fi
 
 # Prompt the user whether they want to create the test.html file
-read -p "${green}\n \nDo you want to create the test.html file for testing the web server? (y/n): ${clear}" response
+echo -e "${green}\nDo you want to create the test.html file for testing the web server? (y/n): ${clear}"
+read response
 
 # Convert the response to lowercase for easier comparison
 response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
@@ -143,8 +144,8 @@ chown $ftplogin:sftpusers /var/www/$domain
 
 
 # Ask user if they want to set up the network share
-echo -e "${green}\n \nWould you like to set up a Network Share? (y/n)${clear}"
-read -p "Choice: " choice
+echo -e "${green}\n \nWould you like to connect to SMB Network Share? (y/n)${clear}"
+read choice
 
 if [[ "$choice" =~ ^[Yy]$ ]]; then
     #Mount Netowrk Share
