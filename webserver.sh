@@ -102,12 +102,12 @@ else
 fi
 
 # Create test.html file
-echo -e "${green}\nDo you want to create a test.html file to test the web server? (y/n): ${clear}"
+echo -e "${green}\nCreate an index.html file in $domain folder (y/n): ${clear}"
 read response
 response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$response" == "y" || "$response" == "yes" ]]; then
-    cat <<EOF > "/var/www/$domain/test.html"
+    cat <<EOF > "/var/www/$domain/index.html"
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,9 +120,9 @@ if [[ "$response" == "y" || "$response" == "yes" ]]; then
 </body>
 </html>
 EOF
-    echo -e "${cyan}\nTest.html file created in /var/www/$domain${clear}"
+    echo -e "${cyan}\nindex.html file created in /var/www/$domain${clear}"
 else
-    echo -e "${yellow}\nSkipping creation of test.html file.${clear}"
+    echo -e "${yellow}\nSkipping creation of index.html file${clear}"
 fi
 
 # Install and Configure SFTP
@@ -248,7 +248,7 @@ systemctl start daily-update-clean-reboot.timer
 echo -e "${cyan}\nSystemd timer enabled and started successfully.${clear}"
 
 # Final message and reboot
-echo -e "${green}\n \nVerify your website is online at http://$(hostname -I | tr -d ' ')/test.html${clear}"
+echo -e "${green}\n \nVerify your website is online at http://$(hostname -I | tr -d ' ')/${clear}"
 sleep 2
 echo -e "${red}\nSystem will reboot in 5 seconds.${clear}"
 sleep 5
