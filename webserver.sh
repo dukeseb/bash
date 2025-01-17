@@ -91,7 +91,7 @@ else
 fi
 
 # Prompt the user whether they want to create the test.html file
-read -p "Do you want to create the test.html file for testing the web server? (y/n): " response
+read -p "${green}\n \nDo you want to create the test.html file for testing the web server? (y/n): ${clear}" response
 
 # Convert the response to lowercase for easier comparison
 response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
@@ -116,9 +116,9 @@ if [[ "$response" == "y" || "$response" == "yes" ]]; then
 </html>
 EOF
 
-    echo "test.html file created in $directory."
+    echo -e "${cyan}\n \ntest.html file created in $directory ${clear}"
 else
-    echo "Skipping creation of test.html file."
+    echo "${yellow}\n \nSkipping creation of test.html file ${clear}"
 fi
 
 
@@ -153,9 +153,9 @@ if [[ "$choice" =~ ^[Yy]$ ]]; then
     echo -e "${green}What is the IP Address?${clear}"
     read ipaddress
     echo -e "${green}What is your Share Username?${clear}"
-    read -s shareusername
+    read shareusername
     echo -e "${green}What is your Share Password?${clear}"
-    read sharepasswd
+    read -s sharepasswd
     mkdir /mnt/share
     touch /credentials.cifs_user
     echo -e "USER=$shareusername \nPASSWORD=$sharepasswd" >> /credentials.cifs_user
@@ -255,7 +255,7 @@ sleep 2
 
 
 #Closing Information
-echo -e "${cyan}\n \nVerify the website is online at http://$(hostname -I)/test.html${clear}"
+echo -e "${green}\n \nVerify the website is online at http://$(hostname -I | tr -d ' ')/test.html${clear}"
 sleep 2
 echo -e "${red}\nSystem will reboot in 5 seconds${clear}"
 sleep 5
