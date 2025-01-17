@@ -149,9 +149,7 @@ read choice
 
 if [[ "$choice" =~ ^[Yy]$ ]]; then
     #Mount Netowrk Share
-    echo -e "${yellow}\n \nSetting Up Network Share${clear}"
-    sleep 2
-    echo -e "${green}What is the IP Address?${clear}"
+    echo -e "${green}What is the Share IP Address?${clear}"
     read ipaddress
     echo -e "${green}What is your Share Username?${clear}"
     read shareusername
