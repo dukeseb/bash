@@ -248,7 +248,7 @@ systemctl start daily-update-clean-reboot.timer
 echo -e "${cyan}\nSystemd timer enabled and started successfully.${clear}"
 
 # Final message and reboot
-echo -e "${green}\n \nVerify your website is online at http://$(hostname -I | tr -d ' ')/${clear}"
+echo -e "${green}\n \nVerify your website is online at ${yellow}http://$(hostname -I | tr -d ' ')/${clear}${clear}"
 sleep 2
 echo -e "${red}\nSystem will reboot in 5 seconds.${clear}"
 sleep 5
