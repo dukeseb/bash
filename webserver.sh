@@ -90,6 +90,37 @@ else
     sleep 2
 fi
 
+# Prompt the user whether they want to create the test.html file
+read -p "Do you want to create the test.html file for testing the web server? (y/n): " response
+
+# Convert the response to lowercase for easier comparison
+response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+
+# If the response is "y" or "yes", run the part of the script to create the test.html file
+if [[ "$response" == "y" || "$response" == "yes" ]]; then
+    # Path to the directory where test.html should be placed
+    directory="/var/www/$domain"
+
+    # Create the test.html file with the HTML content
+    cat <<EOF > "$directory/test.html"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Server for $domain Enabled</title>
+</head>
+<body>
+    <h1>Web Server for $domain Enabled</h1>
+</body>
+</html>
+EOF
+
+    echo "test.html file created in $directory."
+else
+    echo "Skipping creation of test.html file."
+fi
+
 
 #Install SFTP
 echo -e "${yellow}\n \nSetting up SFTP${clear}"
@@ -224,8 +255,8 @@ sleep 2
 
 
 #Closing Information
-echo -e "${yellow}\n \nThis is your current IP ADDRESS${clear}"
-hostname -I
+echo -e "${cyan}\n \nVerify the website is online at http://$(hostname -I)/test.html${clear}"
+sleep 2
 echo -e "${red}\nSystem will reboot in 5 seconds${clear}"
 sleep 5
 reboot
