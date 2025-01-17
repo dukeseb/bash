@@ -7,6 +7,7 @@
 # https://tecadmin.net/how-to-install-php-on-debian-12/
 # https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
 # https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
+# https://chatgpt.com is your friend ;)
 
 # Set color variables
 red='\033[0;31m'
