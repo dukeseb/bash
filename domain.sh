@@ -14,6 +14,21 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+# --- Pre-flight Checks ---
+
+# 1. Check for Root/Sudo
+if [[ $EUID -ne 0 ]]; then
+   echo -e "${RED}${BOLD}ERROR:${NC} This script must be run as root. Please use ${CYAN}sudo ./scriptname.sh${NC}"
+   exit 1
+fi
+
+# 2. Confirm Ubuntu Distribution
+if ! grep -qi "ubuntu" /etc/os-release; then
+    echo -e "${RED}${BOLD}ERROR:${NC} This script is optimized for Ubuntu only."
+    echo -e "Detected OS: $(grep '^PRETTY_NAME=' /etc/os-release | cut -d'=' -f2 | tr -d '\"')"
+    exit 1
+fi
+
 # --- UI & Spinner Functions ---
 
 print_header() {
@@ -185,7 +200,7 @@ echo -e "\n${BLUE}==============================================================
 echo -e "${BOLD}${GREEN}          INSTALLATIONS COMPLETE${NC}"
 echo -e "${BLUE}================================================================${NC}"
 echo -e "${BOLD}Site URL:${NC} ${YELLOW}http://$(hostname -I | awk '{print $1}')/${NC}"
-echo -e "${BOLD}SFTP User:${NC} $ftplogin"
+echo -e "${BOLD}SFTP User:${NC} ${ftplogin:-'Not Configured'}"
 echo -e "${RED}System will reboot in 5 seconds...${NC}"
 sleep 5
 reboot
