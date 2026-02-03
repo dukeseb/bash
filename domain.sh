@@ -132,8 +132,9 @@ fi
 
 # --- 7. SFTP Access Section ---
 echo -e "\n${YELLOW}[ SFTP ACCESS SETUP ]${NC}"
-read -p "  SFTP Username: " ftplogin
-if [[ -n "$ftplogin" ]]; then
+read -p "  Enable SFTP access? (y/n): " sftp_choice
+if [[ "$sftp_choice" =~ ^[Yy]$ ]]; then
+    read -p "  SFTP Username: " ftplogin
     groupadd sftpusers 2>/dev/null || true
     useradd -m -g sftpusers -s /bin/false "$ftplogin"
     echo -e "  ${CYAN}Set password for $ftplogin:${NC}"
@@ -148,37 +149,26 @@ if [[ -n "$ftplogin" ]]; then
     chown $ftplogin:sftpusers /var/www/$domain"
 fi
 
-run_with_spinner "Configuring SFTP Chroot..." "
-sed -i 's|Subsystem\s*sftp\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config
-echo 'Match Group sftpusers
-    X11Forwarding no
-    AllowTcpForwarding no
-    ChrootDirectory /var/www/
-    ForceCommand internal-sftp' >> /etc/ssh/sshd_config
-systemctl restart ssh &&
-chown root:sftpusers /var/www &&
-chmod 755 /var/www &&
-chown $ftplogin:sftpusers /var/www/$domain"
-
 # --- 8. Maintenance Schedule Section ---
 echo -e "\n${YELLOW}[ AUTOMATED MAINTENANCE ]${NC}"
-read -p "  Daily Update Time (HH:MM): " time_of_day
-
-run_with_spinner "Setting up systemd timer..." "
-SCRIPT='/usr/local/bin/daily-update.sh'
-cat > \$SCRIPT << 'EOF'
+read -p "  Enable daily updates and reboot? (y/n): " maint_choice
+if [[ "$maint_choice" =~ ^[Yy]$ ]]; then
+    read -p "  Daily Update Time (HH:MM): " time_of_day
+    run_with_spinner "Setting up systemd timer..." "
+    SCRIPT='/usr/local/bin/daily-update.sh'
+    cat > \$SCRIPT << 'EOF'
 #!/bin/bash
 apt update && apt upgrade -y && apt autoremove -y && apt clean && reboot
 EOF
-chmod +x \$SCRIPT
-cat > /etc/systemd/system/daily-update.service << EOF
+    chmod +x \$SCRIPT
+    cat > /etc/systemd/system/daily-update.service << EOF
 [Unit]
 Description=Daily Update and Reboot
 [Service]
 Type=oneshot
 ExecStart=\$SCRIPT
 EOF
-cat > /etc/systemd/system/daily-update.timer << EOF
+    cat > /etc/systemd/system/daily-update.timer << EOF
 [Unit]
 Description=Run daily maintenance
 [Timer]
@@ -187,7 +177,8 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOF
-systemctl daemon-reload && systemctl enable --now daily-update.timer"
+    systemctl daemon-reload && systemctl enable --now daily-update.timer"
+fi
 
 # --- Final Message ---
 echo -e "\n${BLUE}================================================================${NC}"
