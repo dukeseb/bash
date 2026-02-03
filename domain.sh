@@ -1,58 +1,74 @@
 #!/bin/bash
 
-# References:
-# https://www.linuxcapable.com/how-to-install-apache-on-debian-linux/
-# https://reintech.io/blog/setting-up-sftp-secure-file-transfers-debian-12
-# https://www.transip.eu/knowledgebase/entry/1851-installing-an-ssh-server-debian/?utm_source=knowledge%20base
-# https://tecadmin.net/how-to-install-php-on-debian-12/
-# https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mariadb-php-lamp-stack-on-debian-10
-# https://www.digitalocean.com/community/tutorials/how-to-install-php-8-1-and-set-up-a-local-development-environment-on-ubuntu-22-04
-# https://chatgpt.com is your friend ;)
+# =================================================================
+#  FULL LAMP, SFTP & SMB AUTO-INSTALLER (Debian 12)
+# =================================================================
 
-# Set color variables
-red='\033[0;31m'
-green='\033[0;32m'
-yellow='\033[0;33m'
-blue='\033[0;34m'
-magenta='\033[0;35m'
-cyan='\033[0;36m'
-clear='\033[0m'
+# Color Palette
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
 
-# Prompt for Domain Information
-echo -e "${green}What is your website name? (only include root domain, e.g., domain.com)${clear}"
-read domain
-sleep 1
-echo -e "${yellow}\nCreating directory for $domain${clear}"
-sleep 2
-mkdir -p /var/www/$domain
+# --- UI & Spinner Functions ---
 
-echo -e "${green}\nWhat is the email associated with this domain?${clear}"
-read email
+print_header() {
+    clear
+    echo -e "${BLUE}================================================================${NC}"
+    echo -e "${BOLD}${CYAN}          WEB SERVER PROVISIONING SCRIPT${NC}"
+    echo -e "${BLUE}================================================================${NC}"
+}
 
-# Update system packages
-echo -e "${yellow}\nChecking & Installing Updates${clear}"
-sleep 2
-apt update && apt upgrade -y
+run_with_spinner() {
+    local msg="$1"
+    local cmd="$2"
+    local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    
+    eval "$cmd" > /dev/null 2>&1 &
+    local pid=$!
+    
+    tput civis 
+    echo -ne "${BOLD}${MAGENTA}==>${NC} ${BOLD}$msg  ${NC}"
+    
+    local i=0
+    while kill -0 $pid 2>/dev/null; do
+        local frame=${spin:$((i % ${#spin})):1}
+        printf "${CYAN}%s${NC}\b" "$frame"
+        ((i++))
+        sleep 0.1
+    done
+    
+    wait $pid
+    local exit_code=$?
+    
+    tput cnorm 
+    if [ $exit_code -eq 0 ]; then
+        echo -e "\b${GREEN}Done!${NC}"
+    else
+        echo -e "\b${RED}Error!${NC}"
+        exit 1
+    fi
+}
 
-# Install Apache Web Server
-echo -e "${yellow}\nInstalling Apache2 Web Server${clear}"
-sleep 2
-apt install apache2 -y
-systemctl enable apache2 --now
+# --- 1. User Input Section ---
+print_header
+echo -e "${YELLOW}[ PRIMARY CONFIGURATION ]${NC}"
+read -p "  Website Domain (domain.com): " domain
+read -p "  Admin Email: " email
+echo -e "\n${BLUE}----------------------------------------------------------------${NC}"
 
-# Install and configure UFW firewall
-echo -e "${yellow}\nInstalling & Configuring UFW${clear}"
-sleep 2
-apt install ufw -y
-ufw enable
-ufw allow 80
-ufw allow 443
-ufw allow 22
+# --- 2. System Core Setup ---
+run_with_spinner "Preparing web directory..." "mkdir -p /var/www/$domain"
+run_with_spinner "Updating system packages..." "apt update && apt upgrade -y"
+run_with_spinner "Installing Apache & UFW..." "apt install apache2 ufw -y && systemctl enable apache2 --now"
+run_with_spinner "Configuring Firewall (80, 443, 22)..." "ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 22/tcp && echo 'y' | ufw enable"
 
-# Setup Apache Virtual Host
-echo -e "${yellow}\nSetting up Apache Virtual Host${clear}"
-sleep 2
-cat <<EOF > /etc/apache2/sites-available/$domain.conf
+# --- 3. Apache Virtual Host & Security ---
+run_with_spinner "Creating Virtual Host config..." "cat <<EOF > /etc/apache2/sites-available/$domain.conf
 <VirtualHost *:80>
     ServerAdmin $email
     ServerName $domain
@@ -65,191 +81,110 @@ cat <<EOF > /etc/apache2/sites-available/$domain.conf
         CheckCaseOnly On
     </IfModule>
 </VirtualHost>
-EOF
+EOF"
 
-a2dissite 000-default.conf
-a2ensite $domain.conf
-a2enmod speling
+run_with_spinner "Activating site & disabling indexes..." "
+a2dissite 000-default.conf && 
+a2ensite $domain.conf && 
+a2enmod speling && 
+sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' /etc/apache2/apache2.conf &&
+systemctl restart apache2"
 
-echo -e "${yellow}\nChecking Apache configuration syntax${clear}"
-sleep 3
-apache2ctl configtest
-sleep 3
-
-# Disable directory listing
-echo -e "${yellow}\nDisabling Web Indexes${clear}"
-sleep 3
-sed -i 's/Options Indexes FollowSymLinks/Options FollowSymLinks/g' /etc/apache2/apache2.conf
-
-# Restart Apache
-systemctl restart apache2
-
-# PHP Installation (optional)
-echo -e "${green}\nDo you want to install PHP? (y/n)${clear}"
-read -p "Choice: " install_php
-
-if [[ "$install_php" =~ ^[Yy]$ ]]; then
-    echo -e "${green}\nWhich PHP version do you want to install? (e.g., 8.3)${clear}"
-    read phpversion
-    apt install -y software-properties-common apt-transport-https lsb-release ca-certificates wget 
-    add-apt-repository ppa:ondrej/php
-    apt update
-    apt -y install php$phpversion php$phpversion-{mysql,zip,bcmath,mbstring,xml,curl,gd}
-    systemctl restart apache2
-else
-    echo -e "${magenta}Skipping PHP installation.${clear}"
-    sleep 2
-fi
-
-# Create test.html file
-echo -e "${green}\nCreate an index.html file in $domain folder (y/n): ${clear}"
-read response
-response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$response" == "y" || "$response" == "yes" ]]; then
-    cat <<EOF > "/var/www/$domain/index.html"
+# --- 4. Test HTML Section ---
+echo -e "\n${YELLOW}[ TEST PAGE ]${NC}"
+read -p "  Create a test index.html file? (y/n): " mk_html
+if [[ "$mk_html" =~ ^[Yy]$ ]]; then
+    run_with_spinner "Generating index.html..." "cat <<EOF > /var/www/$domain/index.html
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Server for $domain Enabled</title>
-</head>
-<body>
-    <h1>Web Server for $domain Enabled</h1>
+<html lang='en'>
+<head><meta charset='UTF-8'><title>$domain Ready</title></head>
+<body style='font-family:sans-serif;text-align:center;margin-top:100px;'>
+    <h1>🚀 $domain is Online!</h1>
+    <p>The web server is configured and running.</p>
 </body>
 </html>
-EOF
-    echo -e "${cyan}\nindex.html file created in /var/www/$domain${clear}"
-else
-    echo -e "${yellow}\nSkipping creation of index.html file${clear}"
+EOF"
 fi
 
-# Install and Configure SFTP
-echo -e "${yellow}\nSetting up SFTP${clear}"
-sleep 2
-echo -e "${green}Enter the username for SFTP access:${clear}"
-read ftplogin
-sleep 1
+# --- 5. PHP Installation Section ---
+echo -e "\n${YELLOW}[ PHP RUNTIME ]${NC}"
+read -p "  Install PHP? (y/n): " install_php
+if [[ "$install_php" =~ ^[Yy]$ ]]; then
+    read -p "  Version (e.g., 8.3): " phpversion
+    run_with_spinner "Installing PHP $phpversion..." "apt install -y software-properties-common apt-transport-https lsb-release ca-certificates wget && add-apt-repository ppa:ondrej/php -y && apt update && apt -y install php$phpversion php$phpversion-{mysql,zip,bcmath,mbstring,xml,curl,gd} && systemctl restart apache2"
+fi
 
-# Create SFTP user
-echo -e "${yellow}Creating SFTP user $ftplogin and assigning user to $domain${clear}"
-sleep 2
-groupadd sftpusers
-useradd -m -g sftpusers -s /bin/false $ftplogin
-echo -e "${green}\nEnter password for SFTP login:${clear}"
-passwd $ftplogin
+# --- 6. SMB Share Section ---
+echo -e "\n${YELLOW}[ SMB NETWORK SHARE ]${NC}"
+read -p "  Connect to an SMB network share? (y/n): " smb_choice
+if [[ "$smb_choice" =~ ^[Yy]$ ]]; then
+    read -p "  Share IP: " ipaddress
+    read -p "  Share Username: " shareusername
+    read -s -p "  Share Password: " sharepasswd
+    echo ""
+    run_with_spinner "Configuring SMB mount..." "
+    apt install cifs-utils -y &&
+    mkdir -p /mnt/share &&
+    echo -e 'USER=$shareusername\nPASSWORD=$sharepasswd' > /credentials.cifs_user &&
+    chmod 600 /credentials.cifs_user &&
+    echo '//$ipaddress/Public /mnt/share cifs rw,nosuid,nodev,noexec,relatime,vers=3.0,sec=ntlmv2,cache=strict,credentials=/credentials.cifs_user,uid=1000,gid=1000,file_mode=0777,dir_mode=0777,iocharset=utf8 0 0' >> /etc/fstab"
+fi
 
-# Configure SSH for SFTP
+# --- 7. SFTP Access Section ---
+echo -e "\n${YELLOW}[ SFTP ACCESS SETUP ]${NC}"
+read -p "  SFTP Username: " ftplogin
+groupadd sftpusers 2>/dev/null || true
+useradd -m -g sftpusers -s /bin/false "$ftplogin"
+echo -e "${CYAN}Set password for $ftplogin:${NC}"
+passwd "$ftplogin"
+
+run_with_spinner "Configuring SFTP Chroot..." "
 sed -i 's|Subsystem\s*sftp\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config
-cat <<EOF >> /etc/ssh/sshd_config
-Match Group sftpusers
+echo 'Match Group sftpusers
     X11Forwarding no
     AllowTcpForwarding no
     ChrootDirectory /var/www/
-    ForceCommand internal-sftp
-EOF
+    ForceCommand internal-sftp' >> /etc/ssh/sshd_config
+systemctl restart ssh &&
+chown root:sftpusers /var/www &&
+chmod 755 /var/www &&
+chown $ftplogin:sftpusers /var/www/$domain"
 
-systemctl restart ssh
-chown root:sftpusers /var/www
-chmod 755 /var/www
-chown $ftplogin:sftpusers /var/www/$domain
+# --- 8. Maintenance Schedule Section ---
+echo -e "\n${YELLOW}[ AUTOMATED MAINTENANCE ]${NC}"
+read -p "  Daily Update Time (HH:MM): " time_of_day
 
-# Network Share Setup (Optional)
-echo -e "${green}\nWould you like to connect to an SMB network share? (y/n)${clear}"
-read choice
-
-if [[ "$choice" =~ ^[Yy]$ ]]; then
-    echo -e "${green}Enter the share IP address:${clear}"
-    read ipaddress
-    echo -e "${green}Enter your share username:${clear}"
-    read shareusername
-    echo -e "${green}Enter your share password:${clear}"
-    read -s sharepasswd
-
-    mkdir /mnt/share
-    touch /credentials.cifs_user
-    echo -e "USER=$shareusername\nPASSWORD=$sharepasswd" > /credentials.cifs_user
-    chmod 600 /credentials.cifs_user
-
-    echo -e "\n//$ipaddress/Public /mnt/share cifs rw,nosuid,nodev,noexec,relatime,vers=3.0,sec=ntlmv2,cache=strict,credentials=/credentials.cifs_user,uid=1000,gid=1000,file_mode=0777,dir_mode=0777,iocharset=utf8 0 0" >> /etc/fstab
-else
-    echo -e "${magenta}\nSkipping Network Share setup.${clear}"
-    sleep 2
-fi
-
-# Automatic Updates and Reboot Setup
-echo -e "${yellow}\nSetting up Daily Automatic Updates and Reboot${clear}"
-sleep 2
-
-echo -e "${green}\nPlease enter the time of day (24-hour format, e.g., 04:00) for daily updates:${clear}"
-read -p "Enter time (HH:MM): " time_of_day
-
-# Validate time format (basic check for HH:MM)
-if [[ ! "$time_of_day" =~ ^[0-9]{2}:[0-9]{2}$ ]]; then
-    echo -e "${red}\nInvalid time format. Please use HH:MM format (e.g., 04:00).${clear}"
-    exit 1
-fi
-
-# Paths for systemd service and timer files
-SERVICE_FILE="/etc/systemd/system/daily-update-clean-reboot.service"
-TIMER_FILE="/etc/systemd/system/daily-update-clean-reboot.timer"
-SCRIPT_FILE="/usr/local/bin/daily-update-clean-reboot.sh"
-
-# Create update, clean, and reboot script
-cat > $SCRIPT_FILE << EOF
+run_with_spinner "Setting up systemd timer..." "
+SCRIPT='/usr/local/bin/daily-update.sh'
+cat > \$SCRIPT << 'EOF'
 #!/bin/bash
-
-# Run system updates
-echo "Running apt update..."
-apt update -y
-apt upgrade -y
-
-# Remove unnecessary packages and clean up
-echo "Running apt autoremove..."
-apt autoremove -y
-apt clean
-
-# Reboot the system
-echo "Rebooting system..."
-reboot
+apt update && apt upgrade -y && apt autoremove -y && apt clean && reboot
 EOF
-
-chmod +x $SCRIPT_FILE
-
-# Create systemd service file
-cat > $SERVICE_FILE << EOF
+chmod +x \$SCRIPT
+cat > /etc/systemd/system/daily-update.service << EOF
 [Unit]
-Description=Daily Update, Autoremove, Clean, and Reboot
-
+Description=Daily Update and Reboot
 [Service]
 Type=oneshot
-ExecStart=$SCRIPT_FILE
+ExecStart=\$SCRIPT
 EOF
-
-# Create systemd timer file
-cat > $TIMER_FILE << EOF
+cat > /etc/systemd/system/daily-update.timer << EOF
 [Unit]
-Description=Run daily update, autoremove, clean, and reboot
-
+Description=Run daily maintenance
 [Timer]
-OnCalendar=$time_of_day
+OnCalendar=*-*-* $time_of_day:00
 Persistent=true
-
 [Install]
 WantedBy=timers.target
 EOF
+systemctl daemon-reload && systemctl enable --now daily-update.timer"
 
-# Enable and start systemd timer
-systemctl daemon-reload
-systemctl enable daily-update-clean-reboot.timer
-systemctl start daily-update-clean-reboot.timer
-
-echo -e "${cyan}\nSystemd timer enabled and started successfully.${clear}"
-
-# Final message and reboot
-echo -e "${green}\n \nVerify your website is online at ${yellow}http://$(hostname -I | tr -d ' ')/${clear}${clear}"
-sleep 2
-echo -e "${red}\nSystem will reboot in 5 seconds.${clear}"
+# --- Final Message ---
+echo -e "\n${BLUE}================================================================${NC}"
+echo -e "${BOLD}${GREEN}          INSTALLATIONS COMPLETE${NC}"
+echo -e "${BLUE}================================================================${NC}"
+echo -e "${BOLD}Site URL:${NC} ${YELLOW}http://$(hostname -I | awk '{print $1}')/${NC}"
+echo -e "${BOLD}SFTP User:${NC} $ftplogin"
+echo -e "${RED}System will reboot in 5 seconds...${NC}"
 sleep 5
 reboot
