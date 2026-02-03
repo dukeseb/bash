@@ -133,10 +133,20 @@ fi
 # --- 7. SFTP Access Section ---
 echo -e "\n${YELLOW}[ SFTP ACCESS SETUP ]${NC}"
 read -p "  SFTP Username: " ftplogin
-groupadd sftpusers 2>/dev/null || true
-useradd -m -g sftpusers -s /bin/false "$ftplogin"
-echo -e "${CYAN}Set password for $ftplogin:${NC}"
-passwd "$ftplogin"
+if [[ -n "$ftplogin" ]]; then
+    groupadd sftpusers 2>/dev/null || true
+    useradd -m -g sftpusers -s /bin/false "$ftplogin"
+    echo -e "  ${CYAN}Set password for $ftplogin:${NC}"
+    passwd "$ftplogin"
+
+    run_with_spinner "Configuring SFTP Chroot..." "
+    sed -i 's|Subsystem\s*sftp\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config &&
+    printf \"Match Group sftpusers\n    X11Forwarding no\n    AllowTcpForwarding no\n    ChrootDirectory /var/www/\n    ForceCommand internal-sftp\n\" >> /etc/ssh/sshd_config &&
+    systemctl restart ssh &&
+    chown root:sftpusers /var/www &&
+    chmod 755 /var/www &&
+    chown $ftplogin:sftpusers /var/www/$domain"
+fi
 
 run_with_spinner "Configuring SFTP Chroot..." "
 sed -i 's|Subsystem\s*sftp\s*/usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config
