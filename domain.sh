@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================
-#  FULL LAMP, SFTP & SMB AUTO-INSTALLER (Debian 12)
+#  FULL LAMP, SFTP & SMB AUTO-INSTALLER (Ubuntu Only)
 # =================================================================
 
 # Color Palette
